@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "What Would Jesus Comment?",
+  "version": "1.0",
+  "description": "Right-click text to see what would Jesus comment.",
+  "permissions": [
+    "contextMenus",
+    "scripting",
+    "activeTab",
+    "notifications",
+    "storage"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "host_permissions": [
+    "<all_urls>"
+  ]
+}
