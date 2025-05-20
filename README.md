@@ -1,6 +1,6 @@
 # 🙏 WWJC Bot — What Would Jesus Comment?
 
-**WWJC Bot** is a Chrome extension and AI-powered backend that calls out hypocrisy using the moral framework of Christian scripture.
+**WWJC Bot** is a Chrome extension and AI-powered backend that identifies contradictions using the moral framework of Christian scripture.
 
 Users can highlight any social media post, right-click, and generate a Bible-based comment that challenges the statement using teachings of Jesus and God.
 
@@ -10,7 +10,7 @@ Users can highlight any social media post, right-click, and generate a Bible-bas
 
 - 🙏 Context-aware responses based on scripture
 - 🖱️ Right-click integration in Chrome to trigger the bot
-- 🧠 Backend powered by Mistral or Zephyr LLM via Hugging Face + Modal
+- 🧠 Backend powered by Mistral LLM via Hugging Face + Modal
 - 📖 Structured output:  
   - Bible verse reference  
   - Full verse text  
@@ -21,7 +21,7 @@ Users can highlight any social media post, right-click, and generate a Bible-bas
 
 ## 💡 Why This Exists
 
-WWJC Bot is designed to expose contradictions between professed Christian values and harmful or exclusionary online behavior.
+WWJC Bot is designed to challenge contradictions between professed Christian values and harmful or exclusionary online behavior.
 
 It holds people accountable using the same belief system they publicly claim — not to preach, but to prompt introspection and ethical consistency.
 
@@ -40,7 +40,7 @@ It holds people accountable using the same belief system they publicly claim —
 
 - **Frontend:** Chrome Extension (HTML/CSS/JS)
 - **Backend:** Python (Modal + Hugging Face Transformers)
-- **Model:** Mistral-7B-Instruct or Zephyr-7B-Beta
+- **Model:** Mistral-7B-Instruct
 
 ---
 
@@ -52,7 +52,7 @@ Coming soon — or clone the repo and run it locally!
 
 ## 🤝 Contributing
 
-Ideas, improvements, and respectful theological insights are welcome.
+Ideas, improvements, and respectful insights are welcome.
 
 ---
 
