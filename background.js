@@ -3,7 +3,6 @@ console.log("WWJC background script loaded");
 
 // Create context menu on install
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("Registering context menu item...");
 
   chrome.contextMenus.create({
     id: "wwjc-bot",
@@ -17,9 +16,6 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === "wwjc-bot" && info.selectionText) {
     const selectedText = info.selectionText.trim();
 
-    // Log the selected text
-    console.log("Selected text:", selectedText);
-
     try {
       // Send POST request to Modal API
       const response = await fetch("https://brad-stricherz--wwjd-bot-verse-api.modal.run", {
@@ -29,11 +25,8 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       });
 
       const data = await response.json();
-      console.log("WWJC response:", data);
 
-      console.log("Storing response:", data);
       chrome.storage.local.set({ wwjcResponse: data }, () => {
-        console.log("Response saved to chrome.storage");
       });
 
       // Show notification
