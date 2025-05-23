@@ -5,7 +5,6 @@
   "description": "Right-click text to see what would Jesus comment.",
   "permissions": [
     "contextMenus",
-    "scripting",
     "activeTab",
     "notifications",
     "storage"
