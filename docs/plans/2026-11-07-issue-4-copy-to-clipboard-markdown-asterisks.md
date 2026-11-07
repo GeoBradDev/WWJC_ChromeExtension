@@ -91,6 +91,10 @@ browser-support surface. Noted as a follow-up option in the PR body.
     navigator.clipboard)`; if the record changed during the await (`current` is not the
     record captured at click), do nothing; else show `copied` and set a timer for
     `COPY_FEEDBACK_MS` that returns to `idle`, or show `failed` with no timer.
+  - Added after review: each click takes a token from a counter; after the await the
+    handler also returns if a newer click superseded it, and clears the feedback timer
+    again right before showing its state. Covered by the frozen
+    `test/defect-copy-overlap.test.js`.
   - Remove `alert`.
 - `test/popup.test.js`:
   - Replace the two copy tests that assert the old Markdown format and `alert` (they
@@ -132,6 +136,9 @@ browser-support surface. Noted as a follow-up option in the PR body.
   announce again.
 - Stale feedback: a slow `writeText` resolving after a new record arrived would show
   `Copied` against the new result. Guarded by comparing the captured record.
+- Overlapping clicks: a second click while the first write is pending could let the
+  first click's success timer wipe the second's error, or let writes settling out of
+  order show the older outcome. Guarded by a per-click token checked after the await.
 - Clipboard in an MV3 popup: `navigator.clipboard.writeText` needs a focused document and
   a user gesture; the popup has both on click, and no manifest permission is needed
   (`clipboardWrite` is only for `document.execCommand`). The live drive proves a real

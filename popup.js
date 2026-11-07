@@ -30,6 +30,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     let staleTimer;
     // Returns the copy button and status to idle after a successful copy.
     let feedbackTimer;
+    // Counts copy clicks so only the latest click's outcome is shown.
+    let copyClicks = 0;
 
     function render(record) {
         clearTimeout(staleTimer);
@@ -46,13 +48,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     elements.copyBtn.addEventListener("click", async () => {
         if (current?.status !== "done" || !current.result) return;
         const record = current;
+        const click = ++copyClicks;
         clearTimeout(feedbackTimer);
         // Clear first so a repeated message is announced again.
         showCopyFeedback("idle", elements);
         const ok = await copyResult(record.result, navigator.clipboard);
-        // A new record arrived during the write: its render already reset
-        // the feedback, which must not describe the earlier result.
-        if (current !== record) return;
+        // A new record arrived during the write (its render already reset
+        // the feedback), or a newer click superseded this one: either way
+        // this outcome must not be shown.
+        if (current !== record || click !== copyClicks) return;
+        clearTimeout(feedbackTimer);
         if (ok) {
             showCopyFeedback("copied", elements);
             feedbackTimer = setTimeout(() => showCopyFeedback("idle", elements), COPY_FEEDBACK_MS);
