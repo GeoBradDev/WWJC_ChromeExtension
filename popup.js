@@ -30,11 +30,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     });
 
+    // Set once onChanged has rendered: the initial get reply may have been
+    // read before that change, so it must not overwrite it.
+    let changedSinceOpen = false;
+
     chrome.storage.onChanged.addListener((changes, areaName) => {
         if (areaName !== "local" || !(STORAGE_KEY in changes)) return;
+        changedSinceOpen = true;
         render(changes[STORAGE_KEY].newValue);
     });
 
     const { [STORAGE_KEY]: record } = await chrome.storage.local.get(STORAGE_KEY);
-    render(record);
+    if (!changedSinceOpen) render(record);
 });
