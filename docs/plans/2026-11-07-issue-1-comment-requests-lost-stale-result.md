@@ -134,13 +134,14 @@ remaining case where the worker is killed anyway.
   `storage.local` (get, set, remove, promise style) that fires `storage.onChanged`
   listeners, `notifications.create`, `action.setBadgeText`, `runtime.getPlatformInfo`,
   `contextMenus.create`, listener registries for `onInstalled`, `onStartup`, `onClicked`,
-  plus a `deferred` mode that holds storage replies and event dispatch so tests can
-  interleave them (added for the review race fixes).
+  plus a `deferred` mode that queues `storage.local` operations until the test steps or
+  flushes them, so tests can interleave storage round trips (added for the review race
+  fixes).
 - `test/request.test.js`, `test/background.test.js`, `test/popup.test.js`,
   `test/parse-result.test.js`, `test/recover.test.js`, `test/chrome-mock.test.js` (new).
-- `test/defect-*.test.js` (new): one frozen regression test file per defect confirmed in
-  review (recovery race, supersede race, orphaned pending in the popup, popup initial get
-  race, selected-text clamp, backend error text).
+- `test/defect-*.test.js` (new): frozen regression tests for the defects confirmed in
+  review (recovery race, supersede race and abort of the older request, orphaned pending
+  in the popup, popup initial get race, selected-text clamp, backend error text).
 - `.gitignore` (new): `node_modules/` only.
 - `CLAUDE.md`: created on this branch, per the repo owner, with the project overview, the
   git exception for the /work-issue workflow, and the test command (`npm test`) once it
