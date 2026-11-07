@@ -99,8 +99,11 @@ removed by PR #6 (`handleMenuClick(info)` at background.js:17).
 Live drive (tier High: changed path plus failure and edge paths). Puppeteer installed in a
 scratch directory outside the repo (never a project dependency), Chrome at
 `/usr/bin/google-chrome`, a fresh `--user-data-dir` in scratch, headful on the existing
-`DISPLAY` (or `--headless=new` if headful fails), extension loaded with
-`--load-extension` and `--disable-extensions-except`.
+`DISPLAY` (or `--headless=new` if headful fails), extension loaded with Puppeteer's
+`enableExtensions` launch option plus `browser.installExtension(path)` (CDP
+`Extensions.loadUnpacked` over the pipe transport). Departure from the first draft, which
+named `--load-extension` and `--disable-extensions-except`: branded Google Chrome 137 and
+later ignore `--load-extension`, and the installed Chrome is 157.
 
 - A. Permission warnings: load the real worktree extension (real manifest). From its
   `popup.html` page, call `chrome.management.getPermissionWarningsByManifest` with the
