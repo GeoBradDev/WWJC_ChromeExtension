@@ -27,6 +27,20 @@
             margin: 5px 0;
         }
 
+        .selected-text {
+            color: #555;
+            font-size: 12px;
+            margin-bottom: 8px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .status-error {
+            color: #b00020;
+        }
+
         button {
             padding: 6px 10px;
             font-size: 14px;
@@ -36,7 +50,9 @@
 </head>
 <body>
 <div class="verse-card" id="verseContainer">
+    <div class="selected-text" id="selectedText" style="display:none;"></div>
     <div id="loading">Preparing the comment...</div>
+    <div class="status-error" id="status" role="alert" style="display:none;"></div>
 
     <div class="reference" id="reference" style="display:none;"></div>
     <div class="verse" id="verse" style="display:none;"></div>
@@ -45,6 +61,6 @@
 <button id="copyBtn" style="display:none;">Copy to Clipboard</button>
 
 
-<script src="popup.js"></script>
+<script type="module" src="popup.js"></script>
 </body>
 </html>
