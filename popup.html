@@ -41,6 +41,12 @@
             color: #b00020;
         }
 
+        .copy-status {
+            margin-top: 6px;
+            font-size: 13px;
+            min-height: 1em;
+        }
+
         button {
             padding: 6px 10px;
             font-size: 14px;
@@ -59,6 +65,7 @@
     <div class="explanation" id="explanation" style="display:none;"></div>
 </div>
 <button id="copyBtn" style="display:none;">Copy to Clipboard</button>
+<div id="copyStatus" class="copy-status" role="status" aria-live="polite"></div>
 
 
 <script type="module" src="popup.js"></script>
