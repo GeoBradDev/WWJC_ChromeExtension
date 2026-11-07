@@ -103,8 +103,16 @@ describe("popup.js", () => {
     chrome = createChromeMock(initial ? { [STORAGE_KEY]: initial } : {});
     vi.stubGlobal("chrome", chrome);
     vi.resetModules();
+    // Capture this import's DOMContentLoaded handler and run only it, so
+    // handlers registered by earlier tests on the shared document never fire.
+    const handlers = [];
+    const add = vi.spyOn(document, "addEventListener").mockImplementation((type, fn) => {
+      if (type === "DOMContentLoaded") handlers.push(fn);
+    });
     await import("../popup.js");
-    document.dispatchEvent(new Event("DOMContentLoaded"));
+    add.mockRestore();
+    expect(handlers).toHaveLength(1);
+    handlers[0](new Event("DOMContentLoaded"));
     await vi.waitFor(() => expect(chrome.storage.local.get).toHaveBeenCalled());
     await new Promise((r) => setTimeout(r, 0));
   }

@@ -1,39 +1,40 @@
-document.addEventListener("DOMContentLoaded", () => {
+import { formatForClipboard, renderRequest } from "./lib/popup-view.js";
+import { STORAGE_KEY } from "./lib/request.js";
+
+document.addEventListener("DOMContentLoaded", async () => {
     console.log("Popup loaded");
 
-    const loading = document.getElementById("loading");
-    const reference = document.getElementById("reference");
-    const verse = document.getElementById("verse");
-    const explanation = document.getElementById("explanation");
-    const copyBtn = document.getElementById("copyBtn");
+    const elements = {
+        loading: document.getElementById("loading"),
+        status: document.getElementById("status"),
+        selectedText: document.getElementById("selectedText"),
+        reference: document.getElementById("reference"),
+        verse: document.getElementById("verse"),
+        explanation: document.getElementById("explanation"),
+        copyBtn: document.getElementById("copyBtn")
+    };
 
-    chrome.storage.local.get(["wwjcResponse"], ({ wwjcResponse }) => {
-        const raw = wwjcResponse?.raw;
+    // The record currently on screen; the copy handler reads it at click
+    // time so it never copies a stale result.
+    let current;
 
-        if (!raw || !raw.reference) {
-            loading.textContent = "⛔ No comment received. Try again after selecting text.";
-            return;
-        }
+    function render(record) {
+        current = record;
+        renderRequest(record, elements);
+    }
 
-        // Hide loading text
-        loading.style.display = "none";
-
-        // Show and fill in response
-        reference.style.display = "block";
-        reference.textContent = raw.reference;
-
-        verse.style.display = "block";
-        verse.textContent = `“${raw.verse}”`;
-
-        explanation.style.display = "block";
-        explanation.textContent = raw.explanation;
-
-        copyBtn.style.display = "inline-block";
-        copyBtn.addEventListener("click", () => {
-            const textToCopy = `**${raw.reference}**\n*${raw.verse}*\n${raw.explanation}`;
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                alert("Copied to clipboard!");
-            });
+    elements.copyBtn.addEventListener("click", () => {
+        if (current?.status !== "done" || !current.result) return;
+        navigator.clipboard.writeText(formatForClipboard(current.result)).then(() => {
+            alert("Copied to clipboard!");
         });
     });
+
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+        if (areaName !== "local" || !(STORAGE_KEY in changes)) return;
+        render(changes[STORAGE_KEY].newValue);
+    });
+
+    const { [STORAGE_KEY]: record } = await chrome.storage.local.get(STORAGE_KEY);
+    render(record);
 });
