@@ -79,7 +79,11 @@ remaining case where the worker is killed anyway.
 - `lib/request.js` (new, ES module): pure request logic with injected dependencies, no
   `chrome` global access at import time. Exports `STORAGE_KEY`, `REQUEST_TIMEOUT_MS`
   (90000), `KEEPALIVE_INTERVAL_MS` (20000), `API_URL` (moved from background.js unchanged),
-  `parseResult(response)` (validates and returns `{ ok, result | error }`),
+  `parseResult(response)` (validates and returns `{ ok, result | error }`; for a backend
+  `{"error": ...}` body the popup error includes the backend text only when it is a string,
+  trimmed and capped at 200 characters, else a generic message, and the OS notification uses
+  the fixed "The service reported an error. Click the icon for details."; timeout, network,
+  and HTTP-status notifications keep their own text),
   `runCommentRequest(selectedText, deps)` (writes pending, fetches with timeout and
   keepalive, validates, writes done or error only if the stored record's id still matches,
   sets badge, creates notification), `recoverStaleRequest(deps)`.
