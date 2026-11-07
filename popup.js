@@ -1,4 +1,11 @@
-import { formatForClipboard, isOrphanedPending, msUntilStale, renderRequest } from "./lib/popup-view.js";
+import {
+    COPY_FEEDBACK_MS,
+    copyResult,
+    isOrphanedPending,
+    msUntilStale,
+    renderRequest,
+    showCopyFeedback
+} from "./lib/popup-view.js";
 import { STORAGE_KEY } from "./lib/request.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -11,7 +18,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         reference: document.getElementById("reference"),
         verse: document.getElementById("verse"),
         explanation: document.getElementById("explanation"),
-        copyBtn: document.getElementById("copyBtn")
+        copyBtn: document.getElementById("copyBtn"),
+        copyStatus: document.getElementById("copyStatus")
     };
 
     // The record currently on screen; the copy handler reads it at click
@@ -20,9 +28,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Re-renders a young pending record when it would become orphaned, so a
     // killed worker never leaves the popup loading forever.
     let staleTimer;
+    // Returns the copy button and status to idle after a successful copy.
+    let feedbackTimer;
 
     function render(record) {
         clearTimeout(staleTimer);
+        clearTimeout(feedbackTimer);
+        showCopyFeedback("idle", elements);
         current = record;
         const now = Date.now();
         renderRequest(record, elements, { now: () => now });
@@ -31,11 +43,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    elements.copyBtn.addEventListener("click", () => {
+    elements.copyBtn.addEventListener("click", async () => {
         if (current?.status !== "done" || !current.result) return;
-        navigator.clipboard.writeText(formatForClipboard(current.result)).then(() => {
-            alert("Copied to clipboard!");
-        });
+        const record = current;
+        clearTimeout(feedbackTimer);
+        // Clear first so a repeated message is announced again.
+        showCopyFeedback("idle", elements);
+        const ok = await copyResult(record.result, navigator.clipboard);
+        // A new record arrived during the write: its render already reset
+        // the feedback, which must not describe the earlier result.
+        if (current !== record) return;
+        if (ok) {
+            showCopyFeedback("copied", elements);
+            feedbackTimer = setTimeout(() => showCopyFeedback("idle", elements), COPY_FEEDBACK_MS);
+        } else {
+            showCopyFeedback("failed", elements);
+        }
     });
 
     // Set once onChanged has rendered: the initial get reply may have been
