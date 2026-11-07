@@ -118,7 +118,7 @@ remaining case where the worker is killed anyway.
   on change; the initial read is ignored once a change has rendered (it may be older). When
   it renders a young pending record it schedules a re-render for the moment that record
   would become orphaned, cleared on any later render. Copy button: keep exactly the current behavior (same text format
-  `**ref**\n*verse*\n explanation` as today, `navigator.clipboard.writeText` then
+  `**ref**\n*verse*\nexplanation` as today, `navigator.clipboard.writeText` then
   `alert("Copied to clipboard!")`), but attach the click handler once and read the current
   record at click time so it never copies a stale result. Replace the emoji string with
   plain text.
