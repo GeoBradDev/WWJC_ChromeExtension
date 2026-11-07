@@ -15,3 +15,5 @@ force-push. Granted by the repo owner on 2026-11-07.
 ## Tests
 
 Run `npm ci` once, then `npm test` (vitest; popup tests use jsdom).
+Also run `npm run lint` (ESLint) and `npm run package` (writes `dist/extension/`
+and the release zip; test/build.test.js checks what it ships).
