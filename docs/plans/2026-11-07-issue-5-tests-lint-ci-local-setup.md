@@ -71,6 +71,13 @@ test/request.test.js, test/popup.test.js).
   - `--api-url` must parse as an `http:` or `https:` URL with no username or password;
     anything else exits non-zero with a message. `--api-url` is rejected together with
     `--zip`.
+  - Wiring (added during implementation): `build:dev` runs `node scripts/build.js --dev`,
+    so `npm run build:dev` with no `--api-url` fails instead of silently doing a release
+    build; `--api-url` without `--dev`, and `--dev` with `--zip`, are rejected too. The
+    written API_URL is the parsed URL's `href` (a bare origin gains a trailing `/`).
+  - Zip entry mtime is a fixed local-time 1980-01-01, because fflate writes local date
+    fields and a UTC date falls in 1979 (unstorable) west of UTC. `npm run package` also
+    deletes older `dist/*.zip` so `unzip -l dist/*.zip` sees exactly one archive.
 - Nothing generated is committed: `dist/` is gitignored. test/manifest.test.js is not
   touched; it keeps guarding the committed manifest, which is the one that ships.
 
