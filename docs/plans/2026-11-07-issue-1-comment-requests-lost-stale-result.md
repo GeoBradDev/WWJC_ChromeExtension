@@ -133,8 +133,14 @@ remaining case where the worker is killed anyway.
 - `test/chrome-mock.js` (new): hand-written `chrome` mock factory: in-memory
   `storage.local` (get, set, remove, promise style) that fires `storage.onChanged`
   listeners, `notifications.create`, `action.setBadgeText`, `runtime.getPlatformInfo`,
-  `contextMenus.create`, listener registries for `onInstalled`, `onStartup`, `onClicked`.
-- `test/request.test.js`, `test/background.test.js`, `test/popup.test.js` (new).
+  `contextMenus.create`, listener registries for `onInstalled`, `onStartup`, `onClicked`,
+  plus a `deferred` mode that holds storage replies and event dispatch so tests can
+  interleave them (added for the review race fixes).
+- `test/request.test.js`, `test/background.test.js`, `test/popup.test.js`,
+  `test/parse-result.test.js`, `test/recover.test.js`, `test/chrome-mock.test.js` (new).
+- `test/defect-*.test.js` (new): one frozen regression test file per defect confirmed in
+  review (recovery race, supersede race, orphaned pending in the popup, popup initial get
+  race, selected-text clamp, backend error text).
 - `.gitignore` (new): `node_modules/` only.
 - `CLAUDE.md`: created on this branch, per the repo owner, with the project overview, the
   git exception for the /work-issue workflow, and the test command (`npm test`) once it
