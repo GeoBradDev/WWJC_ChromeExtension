@@ -11,3 +11,7 @@ API; the result is shown in the toolbar popup. Plain JavaScript, no build step.
 For the /work-issue workflow, `git commit` and `git push` are permitted only on
 `issue-<N>-*` branches the run creates, never on `main`, and never as a
 force-push. Granted by the repo owner on 2026-11-07.
+
+## Tests
+
+Run `npm ci` once, then `npm test` (vitest; popup tests use jsdom).
