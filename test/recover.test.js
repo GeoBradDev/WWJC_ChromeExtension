@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createChromeMock } from "./chrome-mock.js";
-import { recoverStaleRequest, STORAGE_KEY } from "../lib/request.js";
+import { recoverStaleRequest, runCommentRequest, STORAGE_KEY } from "../lib/request.js";
 
 const good = { reference: "John 3:16", verse: "v", explanation: "e" };
 const NOW = 1_000_000;
@@ -21,23 +21,19 @@ describe("recoverStaleRequest", () => {
     expect(chrome.action.setBadgeText).toHaveBeenCalledWith({ text: "!" });
   });
 
-  it("leaves a recent pending record alone", async () => {
-    const original = pendingAt(NOW - 60000);
-    const chrome = createChromeMock({ [STORAGE_KEY]: original });
+  it("leaves a pending record started by this worker alone", async () => {
+    const chrome = createChromeMock();
+    let n = 0;
+    // Never settles, so the request stays in flight.
+    const fetch = () => new Promise(() => {});
+    runCommentRequest("mine", { chrome, fetch, newId: () => `own-${++n}`, now: () => NOW - 300000 });
+    await new Promise((r) => setTimeout(r, 0));
+    const before = structuredClone(chrome.storage.local.data[STORAGE_KEY]);
+    expect(before.status).toBe("pending");
 
     await recoverStaleRequest({ chrome, now: () => NOW });
 
-    expect(chrome.storage.local.data[STORAGE_KEY]).toEqual(original);
-    expect(chrome.storage.local.set).not.toHaveBeenCalled();
-  });
-
-  it("leaves a pending record exactly at the threshold alone", async () => {
-    const original = pendingAt(NOW - 120000);
-    const chrome = createChromeMock({ [STORAGE_KEY]: original });
-
-    await recoverStaleRequest({ chrome, now: () => NOW });
-
-    expect(chrome.storage.local.data[STORAGE_KEY]).toEqual(original);
+    expect(chrome.storage.local.data[STORAGE_KEY]).toEqual(before);
   });
 
   it("leaves old done and error records alone", async () => {
