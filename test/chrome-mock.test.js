@@ -24,3 +24,19 @@ describe("chrome mock", () => {
     expect(seen).toHaveBeenCalledWith({ a: { oldValue: 1 } }, "local");
   });
 });
+
+describe("chrome mock deferred storage", () => {
+  it("runs storage operations only when stepped or flushed, in call order", async () => {
+    const chrome = createChromeMock({ a: 1 }, { deferred: true });
+    const got = chrome.storage.local.get("a");
+    const set = chrome.storage.local.set({ a: 2 });
+    expect(chrome.storage.local.data.a).toBe(1);
+    expect(chrome.storage.local.queue.map((op) => op.name)).toEqual(["get", "set"]);
+
+    expect(chrome.storage.local.step()).toBe("get");
+    expect(await got).toEqual({ a: 1 });
+    expect(chrome.storage.local.flush()).toEqual(["set"]);
+    await set;
+    expect(chrome.storage.local.data.a).toBe(2);
+  });
+});
