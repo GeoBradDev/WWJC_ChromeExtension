@@ -11,7 +11,7 @@ const good = { reference: "John 3:16", verse: "For God so loved the world", expl
 const older = { reference: "Old 1:1", verse: "Old verse text", explanation: "Old explanation." };
 
 function rec(status, extra = {}) {
-  return { id: "r", status, selectedText: "the selected post", result: null, error: null, updatedAt: 1, ...extra };
+  return { id: "r", status, selectedText: "the selected post", result: null, error: null, updatedAt: Date.now(), ...extra };
 }
 
 function el(id) {
