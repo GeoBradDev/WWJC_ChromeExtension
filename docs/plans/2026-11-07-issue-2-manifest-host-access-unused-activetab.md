@@ -53,11 +53,17 @@ From the issue, made checkable:
   - Asserts `permissions` contains no `activeTab` and no host patterns.
   - Scans the JS for `chrome.<namespace>` with a regex, keeps the namespaces that need a
     manifest permission using an explicit map in the test (`contextMenus`,
-    `notifications`, `storage`, `tabs`, `scripting`, and similar gated namespaces; `action`
-    and `runtime` are in an explicit no-permission allowlist). `activeTab` has no namespace
+    `notifications`, `storage`, `scripting`, and similar gated namespaces; `action`
+    and `runtime` are in an explicit no-permission allowlist). `tabs` is in neither list:
+    most of `chrome.tabs` needs no permission and the `tabs` permission only exposes
+    sensitive Tab fields, so any `chrome.tabs` use fails with the classify message and must
+    be judged per usage. `activeTab` has no namespace
     of its own, so it is never derived from code and therefore never expected. It asserts
     the sorted derived set equals the sorted `permissions`. An unknown namespace found in code fails the test with a message to
     classify it, so the map cannot silently go stale.
+  - Asserts `optional_host_permissions` and `optional_permissions` are absent or hold no
+    host patterns, and every `content_scripts[].matches` entry (if any) is within the
+    `API_URL` origin.
 - `docs/plans/2026-11-07-issue-2-manifest-host-access-unused-activetab.md`: this plan.
 
 No change to `background.js`: the unused `tab` argument mentioned in the issue was already
@@ -140,3 +146,46 @@ later ignore `--load-extension`, and the installed Chrome is 157.
 - Cleanup: kill the Chrome and mock processes started (check `ps` first), delete the
   scratch profile. Never contact the real Modal backend in any step; the real-manifest
   extension in step A is never triggered to fetch.
+
+### Frozen test rewrite
+
+Approved by the orchestrator (the run's decision-maker). Reason: the test was written in
+this PR and never on main; (a) fixes a check that would force an over-broad permission,
+and (b) only tightens it.
+
+- (a) Removed `tabs` from `GATED` and did not add it to `UNGATED`. Mapping `chrome.tabs`
+  to the `tabs` permission would make a future `chrome.tabs.create(...)` demand `tabs`
+  and add the "Read your browsing history" warning, although create, update, query,
+  sendMessage, and onUpdated need no permission. Now any `chrome.tabs` use hits the
+  "not classified" failure and is classified per usage.
+- (b) New assertions: `optional_host_permissions` and `optional_permissions` contain no
+  host patterns; every `content_scripts[].matches` entry is within the `API_URL` origin.
+  Header note added that the regex scan's false negatives (bracket access,
+  destructuring, aliasing) fail safe.
+
+Proof the rewritten test still catches the defect, run in a scratch worktree at the
+merge base `9b55a15` with only the rewritten test copied in:
+
+```
+× grants host access only to the API_URL origin
+× does not request activeTab or host patterns in permissions
+× requests exactly the permissions the shipped code uses
+-   "https://brad-stricherz--wwjd-bot-verse-api.modal.run/*",
++   "<all_urls>",
+AssertionError: expected [ 'contextMenus', 'activeTab', …(2) ] to not include 'activeTab'
+Tests  3 failed | 2 passed (5)
+```
+
+Proof the new assertions bite: the fixed manifest plus
+`"optional_host_permissions": ["<all_urls>"]` and a `content_scripts` entry with
+`matches: ["<all_urls>"]`:
+
+```
+× does not request optional host access
+× injects content scripts only within the API_URL origin
+AssertionError: optional_host_permissions must not contain host patterns such as <all_urls>; ...
+AssertionError: content_scripts matches <all_urls> reaches beyond https://brad-stricherz--wwjd-bot-verse-api.modal.run/*; ...
+Tests  2 failed | 3 passed (5)
+```
+
+The manifest is unchanged by the rewrite, so no new live drive was run.
