@@ -97,11 +97,17 @@ remaining case where the worker is killed anyway.
   be clicked from automation) without adding a test-only hook to committed code.
 - `manifest.json`: add `"type": "module"` to `background`. No permission changes (`action`
   badge needs none; `offscreen` is not added unless the live drive forces the fallback).
-- `lib/popup-view.js` (new, ES module): `renderRequest(record, elements)` that sets the
-  DOM for none, pending, done, error; exported so jsdom tests can call it.
+- `lib/popup-view.js` (new, ES module): `renderRequest(record, elements, { now })` that sets
+  the DOM for none, pending, done, error; exported so jsdom tests can call it. A pending
+  record whose `updatedAt` is more than `REQUEST_TIMEOUT_MS + STALE_MARGIN_MS` from now
+  (past, or future to survive a clock jump) renders as the interrupted error, because a
+  killed worker is not restarted by opening the popup. The selected text is shown by
+  clearing its inline `display` so the stylesheet's two-line clamp applies.
 - `popup.js`: becomes an ES module. On `DOMContentLoaded`, reads `wwjcRequest`, renders,
   and subscribes to `chrome.storage.onChanged` for `local` area `wwjcRequest`, re-rendering
-  on change. Copy button: keep exactly the current behavior (same text format
+  on change; the initial read is ignored once a change has rendered (it may be older). When
+  it renders a young pending record it schedules a re-render for the moment that record
+  would become orphaned, cleared on any later render. Copy button: keep exactly the current behavior (same text format
   `**ref**\n*verse*\n explanation` as today, `navigator.clipboard.writeText` then
   `alert("Copied to clipboard!")`), but attach the click handler once and read the current
   record at click time so it never copies a stale result. Replace the emoji string with

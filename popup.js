@@ -1,4 +1,4 @@
-import { formatForClipboard, renderRequest } from "./lib/popup-view.js";
+import { formatForClipboard, isOrphanedPending, msUntilStale, renderRequest } from "./lib/popup-view.js";
 import { STORAGE_KEY } from "./lib/request.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -17,10 +17,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     // The record currently on screen; the copy handler reads it at click
     // time so it never copies a stale result.
     let current;
+    // Re-renders a young pending record when it would become orphaned, so a
+    // killed worker never leaves the popup loading forever.
+    let staleTimer;
 
     function render(record) {
+        clearTimeout(staleTimer);
         current = record;
-        renderRequest(record, elements);
+        const now = Date.now();
+        renderRequest(record, elements, { now: () => now });
+        if (record?.status === "pending" && !isOrphanedPending(record, now)) {
+            staleTimer = setTimeout(() => render(current), msUntilStale(record, now));
+        }
     }
 
     elements.copyBtn.addEventListener("click", () => {
