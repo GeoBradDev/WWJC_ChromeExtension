@@ -93,7 +93,10 @@ remaining case where the worker is killed anyway.
   (pending write, final check-and-write, recovery) runs through one module-level promise
   chain so each check and its write are atomic relative to the others; recovery is queued
   at module load, ahead of any click handled by the new worker, and skips ids this worker
-  instance started.
+  instance started. Starting a request aborts the previous in-flight request's
+  `AbortController` (stopping its fetch and keepalive), and a request whose id is no longer
+  the newest one started by this worker is discarded inside the same critical section, so
+  an older response that settles as a newer request starts never shows or notifies.
 - `background.js`: becomes a thin ES module that imports `lib/request.js` and wires
   `onInstalled` (context menu, remove legacy key), `onStartup` and module load (stale
   recovery), and `contextMenus.onClicked` (calls `runCommentRequest`). Keep the context menu
