@@ -136,7 +136,9 @@ remaining case where the worker is killed anyway.
   `contextMenus.create`, listener registries for `onInstalled`, `onStartup`, `onClicked`.
 - `test/request.test.js`, `test/background.test.js`, `test/popup.test.js` (new).
 - `.gitignore` (new): `node_modules/` only.
-- `CLAUDE.md`: add the test command (`npm test`) once it exists.
+- `CLAUDE.md`: created on this branch, per the repo owner, with the project overview, the
+  git exception for the /work-issue workflow, and the test command (`npm test`) once it
+  exists.
 
 Not changed: `README.md` (setup docs are issue #5), manifest permissions or host
 permissions (issue #2), privacy disclosure (issue #3), clipboard approach (issue #4).
