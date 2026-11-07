@@ -44,9 +44,12 @@ Additional behavior in scope (from the issue's recommended fix):
   warming up or slow, please try again" error.
 - Immediate feedback on click: `chrome.action.setBadgeText` shows "..." while pending,
   cleared on done, "!" on error. No permission needed.
-- Startup recovery: if the worker starts and finds a `pending` record older than the
-  timeout plus a margin (worker was killed mid-request), it marks it `error` with a
-  "request was interrupted, try again" message, so the popup never spins forever.
+- Startup recovery: when the worker starts, any `pending` record not started by this worker
+  instance is orphaned by construction (its worker was killed mid-request), whatever its
+  age or a clock change, so it is marked `error` with a "request was interrupted, try
+  again" message and the popup never spins forever. The popup separately treats a pending
+  record more than the timeout plus a margin from now as interrupted, since opening the
+  popup does not start the worker.
 - Popup shows the selected text (truncated with CSS) so the user can confirm which post
   the comment belongs to.
 
@@ -86,7 +89,11 @@ remaining case where the worker is killed anyway.
   and HTTP-status notifications keep their own text),
   `runCommentRequest(selectedText, deps)` (writes pending, fetches with timeout and
   keepalive, validates, writes done or error only if the stored record's id still matches,
-  sets badge, creates notification), `recoverStaleRequest(deps)`.
+  sets badge, creates notification), `recoverStaleRequest(deps)`. Every `wwjcRequest` write
+  (pending write, final check-and-write, recovery) runs through one module-level promise
+  chain so each check and its write are atomic relative to the others; recovery is queued
+  at module load, ahead of any click handled by the new worker, and skips ids this worker
+  instance started.
 - `background.js`: becomes a thin ES module that imports `lib/request.js` and wires
   `onInstalled` (context menu, remove legacy key), `onStartup` and module load (stale
   recovery), and `contextMenus.onClicked` (calls `runCommentRequest`). Keep the context menu
