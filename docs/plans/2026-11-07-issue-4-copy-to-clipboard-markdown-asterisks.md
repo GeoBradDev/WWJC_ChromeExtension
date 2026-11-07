@@ -5,7 +5,8 @@ messages) and rises one tier for each of: it alters existing behavior (the copie
 and the confirmation), and it is interaction in a real browser that jsdom cannot fully
 exercise (the clipboard write under Chrome's user-activation and focus rules, and the
 live-region announcement). The async rejection path is covered by unit tests, so it is
-not counted again. Two files of code, one HTML file, one test file.
+not counted again. Two files of code, one HTML file, two test files (the second,
+`test/defect-copy-overlap.test.js`, was added for a review finding).
 
 Domain skills:
 - superpowers:test-driven-development: invoke (each behavior is written as a failing test
