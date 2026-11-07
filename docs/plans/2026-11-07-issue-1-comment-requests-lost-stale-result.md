@@ -88,6 +88,9 @@ remaining case where the worker is killed anyway.
   recovery), and `contextMenus.onClicked` (calls `runCommentRequest`). Keep the context menu
   id, title, and contexts unchanged. Remove the module-load `console.log` only if it gets in
   the way; otherwise keep it.
+  The click listener is a named export, `handleMenuClick(info)`, so the live drive can call
+  the exact listener from a shim entry file in its scratch copy (a native context menu cannot
+  be clicked from automation) without adding a test-only hook to committed code.
 - `manifest.json`: add `"type": "module"` to `background`. No permission changes (`action`
   badge needs none; `offscreen` is not added unless the live drive forces the fallback).
 - `lib/popup-view.js` (new, ES module): `renderRequest(record, elements)` that sets the
