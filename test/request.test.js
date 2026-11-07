@@ -95,11 +95,11 @@ describe("runCommentRequest", () => {
     ["network failure", () => vi.fn(async () => { throw new TypeError("Failed to fetch"); }), /could not reach/i],
     ["non-2xx status", () => vi.fn(async () => jsonResponse({ raw: good }, 502)), /502/],
     ["2xx body that is not JSON", () => vi.fn(async () => new Response("not json")), /unreadable/i],
-    ["2xx JSON error field", () => vi.fn(async () => jsonResponse({ error: "boom" })), /boom/],
+    ["2xx JSON error field", () => vi.fn(async () => jsonResponse({ error: "boom" })), /boom/, /reported an error\. Click the icon/],
     ["2xx JSON missing verse", () => vi.fn(async () => jsonResponse({ raw: { reference: "a", explanation: "b" } })), /incomplete/i]
   ];
 
-  for (const [name, makeFetch, pattern] of errorCases) {
+  for (const [name, makeFetch, pattern, notificationPattern = pattern] of errorCases) {
     it(`stores error and notifies an error, never ready, on ${name}`, async () => {
       const chrome = createChromeMock({
         [STORAGE_KEY]: { id: "old", status: "done", selectedText: "old", result: good, error: null, updatedAt: 1 }
@@ -114,7 +114,7 @@ describe("runCommentRequest", () => {
       expect(record.error).toMatch(pattern);
       const messages = notificationMessages(chrome);
       expect(messages).toHaveLength(1);
-      expect(messages[0]).toMatch(pattern);
+      expect(messages[0]).toMatch(notificationPattern);
       expect(messages.some((m) => /ready/i.test(m))).toBe(false);
       expect(badgeTexts(chrome)).toEqual(["...", "!"]);
     });
