@@ -23,7 +23,9 @@ test/request.test.js, test/popup.test.js).
 
 1. AC1: `npm run lint` exists and passes locally. ESLint flat config (`eslint.config.js`),
    `@eslint/js` recommended, browser globals plus a readonly `chrome` global for extension
-   sources, node globals for `test/`, `scripts/` and config files. eslint, @eslint/js and
+   sources, node globals for `scripts/` and config files, node plus browser globals for
+   `test/` (changed during implementation: the jsdom popup tests use `document`,
+   `DOMParser`, `getComputedStyle` and `alert`, and are frozen, so the config adapts). eslint, @eslint/js and
    globals are pinned exactly in package.json and locked in package-lock.json.
 2. AC2: A GitHub Actions workflow runs `npm ci`, `npm run lint`, `npm test` on every
    pull request and on push to main. Actions are pinned to full commit SHAs with a
