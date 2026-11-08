@@ -64,7 +64,7 @@ not part of the extension. Run `npm run build` again after changing a source fil
 reload the extension.
 
 `npm run package` produces the zip that is shipped. It contains only `manifest.json`,
-`background.js`, `popup.html`, `popup.js`, `icon.png` and the files in `lib/`, copied
+`background.js`, `popup.html`, `popup.js`, `icon.png` and the `.js` files in `lib/`, copied
 unchanged. CI runs lint, tests and the package step on every pull request and on pushes
 to `main`, and uploads the zip as a build artifact.
 

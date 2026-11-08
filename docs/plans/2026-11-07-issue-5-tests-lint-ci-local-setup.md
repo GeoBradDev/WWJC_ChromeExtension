@@ -34,7 +34,8 @@ test/request.test.js, test/popup.test.js).
 3. AC3: The same workflow runs `npm run package` and uploads the resulting zip as an
    artifact.
 4. AC4: The packaged zip contains only extension runtime files: manifest.json,
-   background.js, popup.html, popup.js, lib/* and icon.png, with manifest.json at the zip
+   background.js, popup.html, popup.js, lib/*.js (non-dot files directly in lib/) and
+   icon.png, with manifest.json at the zip
    root. No node_modules, tests, docs, config, dotfiles or .idea. Enforced by
    test/build.test.js and by the package command's read-back check (it reads the written
    zip from disk and fails unless the entries are exactly the runtime files, each
@@ -57,7 +58,7 @@ test/request.test.js, test/popup.test.js).
 
 `scripts/build.js` (Node ESM), exporting pure, testable functions plus a CLI:
 
-- `RUNTIME_FILES`: explicit allowlist: `manifest.json`, `background.js`, `popup.html`,
+- `listRuntimeFiles()`: explicit allowlist: `manifest.json`, `background.js`, `popup.html`,
   `popup.js`, `icon.png`, plus every `.js` file directly in `lib/` that is not a dotfile
   (sorted). Changed after review from "every regular file in `lib/`", which would ship
   `lib/.DS_Store`, editor swap files and `.orig` backups; it now matches the `lib/*.js`
@@ -67,7 +68,11 @@ test/request.test.js, test/popup.test.js).
 - `npm run package`: `node scripts/build.js --zip`: does the build, then writes
   `dist/wwjc-extension-<manifest.version>.zip` from `dist/extension/` with fflate
   `zipSync` (deterministic order, fixed mtime). Always rebuilds from source, so a dev
-  build can never leak into the zip.
+  build can never leak into the zip. After writing, it reads the zip back from disk with
+  `unzipSync` and throws (deleting the zip) unless the entry names are exactly
+  `listRuntimeFiles()` and each entry is byte-identical to its source. `packageZip`
+  takes an injectable `zip` function (default fflate `zipSync`) so tests can force a bad
+  archive and prove the check fires.
 - `npm run build:dev -- --api-url http://localhost:8000`: writes `dist/dev-extension/`
   (a separate directory, never zipped). Same files, except:
   - `manifest.json`: `host_permissions` replaced with `[<dev origin>/*]`, `name` suffixed
@@ -80,7 +85,12 @@ test/request.test.js, test/popup.test.js).
     `--zip`.
   - Wiring (added during implementation): `build:dev` runs `node scripts/build.js --dev`,
     so `npm run build:dev` with no `--api-url` fails instead of silently doing a release
-    build; `--api-url` without `--dev`, and `--dev` with `--zip`, are rejected too. The
+    build; `--api-url` without `--dev`, and `--dev` with `--zip`, are rejected too.
+    Error messages never echo argument values (they may hold credentials): an unknown
+    `--flag=value` is named by its `--flag` part only, a non-flag argument is reported as
+    "Unexpected argument (value not shown)", and an unparseable `--api-url` is not shown.
+    The CLI runs when `import.meta.main` is true, so `node scripts/build` (no `.js`) and
+    symlinked paths work; the engines floor guarantees it. The
     written API_URL is the parsed URL's `href` (a bare origin gains a trailing `/`).
   - Zip entry mtime is a fixed local-time 1980-01-01, because fflate writes local date
     fields and a UTC date falls in 1979 (unstorable) west of UTC. `npm run package` also
@@ -102,6 +112,8 @@ writer on `node:zlib` (`deflateRawSync`, `crc32`), at the cost of owning binary 
 - `eslint.config.js` (new).
 - `scripts/build.js` (new).
 - `test/build.test.js` (new).
+- `test/defect-build-findings.test.js`, `test/defect-build-cli.test.js` (new, frozen
+  regression tests for review findings).
 - `.github/workflows/ci.yml` (new).
 - `.gitignore`.
 - `.idea/*` (untracked via `git rm -r --cached .idea`; files stay on disk).
