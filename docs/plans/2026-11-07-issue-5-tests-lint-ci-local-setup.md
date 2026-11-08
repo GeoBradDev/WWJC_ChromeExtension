@@ -125,7 +125,9 @@ writer on `node:zlib` (`deflateRawSync`, `crc32`), at the cost of owning binary 
 - `.idea/*` (untracked via `git rm -r --cached .idea`; files stay on disk).
 - `README.md`: Tech Stack backend line made truthful, Demo section replaced with
   Development and Backend sections; privacy section untouched.
-- `CLAUDE.md`: Tests section gains `npm run lint` and `npm run package`.
+- `CLAUDE.md`: Tests section gains `npm run lint` and `npm run package`; the Project
+  paragraph drops "no build step" (no longer true) and says which `dist/` directory
+  to load for the release and dev builds.
 - Existing sources only where ESLint reports a real error, with no behavior change; any
   lint hit that reveals a real bug is reported, not fixed here.
 
