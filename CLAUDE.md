@@ -4,7 +4,12 @@
 
 WWJC is a Manifest V3 Chrome extension. Selecting text and choosing the
 "What Would Jesus Comment?" context menu item sends the text to a backend
-API; the result is shown in the toolbar popup. Plain JavaScript, no build step.
+API; the result is shown in the toolbar popup. Plain JavaScript with no
+transpiling. `npm run build` copies the runtime files into `dist/extension/`;
+load that directory unpacked (not the repo root). `npm run build:dev --
+--api-url <url>` writes `dist/dev-extension/` instead, a copy in which the
+backend URL and the manifest's `host_permissions` and name are rewritten; load
+it the same way. After edits, rerun the build you loaded and reload it.
 
 ## Git exception
 
@@ -15,3 +20,5 @@ force-push. Granted by the repo owner on 2026-11-07.
 ## Tests
 
 Run `npm ci` once, then `npm test` (vitest; popup tests use jsdom).
+Also run `npm run lint` (ESLint) and `npm run package` (writes `dist/extension/`
+and the release zip; test/build.test.js checks what it ships).

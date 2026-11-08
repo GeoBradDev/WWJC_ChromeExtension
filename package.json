@@ -3,10 +3,21 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
+  },
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "lint": "eslint .",
+    "build": "node scripts/build.js",
+    "build:dev": "node scripts/build.js --dev",
+    "package": "node scripts/build.js --zip"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.13.0",
+    "fflate": "0.8.3",
+    "globals": "17.13.0",
     "jsdom": "31.0.0",
     "vitest": "5.1.0"
   }
