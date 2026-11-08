@@ -17,6 +17,7 @@ import {
   rewriteManifest,
   rewriteApiUrl
 } from "../scripts/build.js";
+import { API_URL } from "../lib/request.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const script = join(root, "scripts", "build.js");
@@ -33,7 +34,9 @@ const EXPECTED_FILES = [
   "popup.js"
 ];
 
-const COMMITTED_API_LINE = 'export const API_URL = "https://brad-stricherz--wwjd-bot-verse-api.modal.run";';
+// The committed API_URL line, derived from the module so a backend move does
+// not silently break this test.
+const COMMITTED_API_LINE = `export const API_URL = ${JSON.stringify(API_URL)};`;
 
 let distDir;
 
@@ -68,7 +71,7 @@ describe("listRuntimeFiles", () => {
     expect(listRuntimeFiles(root)).toEqual(EXPECTED_FILES);
   });
 
-  it("ignores everything outside the allowlist and non-files in lib", () => {
+  it("ignores everything outside the allowlist and anything in lib but top-level .js files", () => {
     const fake = mkdtempSync(join(tmpdir(), "wwjc-fake-root-"));
     try {
       for (const f of ["manifest.json", "background.js", "popup.html", "popup.js", "icon.png", "README.md",
@@ -81,7 +84,6 @@ describe("listRuntimeFiles", () => {
         "background.js",
         "icon.png",
         "lib/a.js",
-        "lib/b.json",
         "manifest.json",
         "popup.html",
         "popup.js"

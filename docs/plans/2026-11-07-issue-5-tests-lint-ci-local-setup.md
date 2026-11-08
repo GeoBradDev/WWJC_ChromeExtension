@@ -35,8 +35,10 @@ test/request.test.js, test/popup.test.js).
    artifact.
 4. AC4: The packaged zip contains only extension runtime files: manifest.json,
    background.js, popup.html, popup.js, lib/* and icon.png, with manifest.json at the zip
-   root. No node_modules, tests, docs, config, dotfiles or .idea. Enforced by a test and
-   by a CI step that lists the zip.
+   root. No node_modules, tests, docs, config, dotfiles or .idea. Enforced by
+   test/build.test.js and by the package command's read-back check (it reads the written
+   zip from disk and fails unless the entries are exactly the runtime files, each
+   byte-identical to its source); the CI `unzip -l` step is for visibility.
 5. AC5: `npm run package` works locally (same command CI runs) and the shipped files are
    byte-identical to the sources; the packaged manifest is exactly the committed one.
 6. AC6: The backend URL is configurable for local development without changing the
@@ -56,7 +58,10 @@ test/request.test.js, test/popup.test.js).
 `scripts/build.js` (Node ESM), exporting pure, testable functions plus a CLI:
 
 - `RUNTIME_FILES`: explicit allowlist: `manifest.json`, `background.js`, `popup.html`,
-  `popup.js`, `icon.png`, plus every regular file in `lib/` (sorted).
+  `popup.js`, `icon.png`, plus every `.js` file directly in `lib/` that is not a dotfile
+  (sorted). Changed after review from "every regular file in `lib/`", which would ship
+  `lib/.DS_Store`, editor swap files and `.orig` backups; it now matches the `lib/*.js`
+  scan in test/manifest.test.js.
 - `npm run build`: `node scripts/build.js` removes and recreates `dist/extension/`, copying
   each runtime file byte for byte. This is the "Load unpacked" directory.
 - `npm run package`: `node scripts/build.js --zip`: does the build, then writes
