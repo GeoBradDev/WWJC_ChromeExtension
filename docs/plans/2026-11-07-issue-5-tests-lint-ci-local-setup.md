@@ -90,7 +90,13 @@ test/request.test.js, test/popup.test.js).
     `--flag=value` is named by its `--flag` part only, a non-flag argument is reported as
     "Unexpected argument (value not shown)", and an unparseable `--api-url` is not shown.
     The CLI runs when `import.meta.main` is true, so `node scripts/build` (no `.js`) and
-    symlinked paths work; the engines floor guarantees it. The
+    symlinked paths work. The engines floor does not guarantee it (npm only warns on
+    engines), so on a Node without `import.meta.main`, when argv[1] (as given or with
+    `.js` added) is the script itself, it exits 1 with "Unsupported Node.js version
+    <version>: requires ^22.22.2 || ^24.15.0 || >=26.0.0"; when imported, it stays silent.
+    The decision is the exported pure function `entryDecision()`. An `--api-url` with a
+    scheme other than http/https is rejected without naming the scheme, which for a
+    scheme-less `user:pw@host` would be the username. The
     written API_URL is the parsed URL's `href` (a bare origin gains a trailing `/`).
   - Zip entry mtime is a fixed local-time 1980-01-01, because fflate writes local date
     fields and a UTC date falls in 1979 (unstorable) west of UTC. `npm run package` also

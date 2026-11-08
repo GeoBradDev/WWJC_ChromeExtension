@@ -7,7 +7,7 @@
 // The release build copies an explicit allowlist of runtime files byte for
 // byte. The dev build is the same except that the manifest's host_permissions
 // and name, and the API_URL line in lib/request.js, point at a local backend.
-import { copyFileSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { unzipSync, zipSync } from "fflate";
@@ -120,7 +120,9 @@ export function parseApiUrl(value) {
     throw new Error("--api-url is not a valid URL");
   }
   if (url.protocol !== "http:" && url.protocol !== "https:") {
-    throw new Error(`--api-url must be an http: or https: URL, got ${url.protocol}`);
+    // The scheme is not echoed: without one, the parsed "scheme" can be a
+    // username (admin:pw@host).
+    throw new Error("--api-url must be an http: or https: URL");
   }
   if (url.username || url.password) {
     throw new Error("--api-url must not contain a username or password");
@@ -209,9 +211,42 @@ export function main(argv) {
   }
 }
 
-// import.meta.main is true only for the entry module, however it was named
-// on the command line (symlinked path, no .js extension). Available in every
-// Node version allowed by package.json engines.
-if (import.meta.main) {
+export const SUPPORTED_NODE = "^22.22.2 || ^24.15.0 || >=26.0.0";
+
+export function unsupportedNodeMessage(version) {
+  return `Unsupported Node.js version ${version}: requires ${SUPPORTED_NODE}`;
+}
+
+function realpathOrNull(path) {
+  try {
+    return realpathSync(path);
+  } catch {
+    return null;
+  }
+}
+
+// Decides what the module does at load time. import.meta.main (true only for
+// the entry module, however it was named on the command line) settles it when
+// present. Older Node lacks it, and npm only warns on engines, so there the
+// module checks whether argv[1] (as given or with .js added) is this file
+// and, if so, reports the Node version instead of silently doing nothing.
+// Returns "run", "skip" or "unsupported".
+export function entryDecision({ main, argv1, modulePath }) {
+  if (main === true) return "run";
+  if (main === false || !argv1) return "skip";
+  const self = realpathOrNull(modulePath);
+  const candidates = [argv1, `${argv1}.js`].map(realpathOrNull);
+  return self && candidates.includes(self) ? "unsupported" : "skip";
+}
+
+const decision = entryDecision({
+  main: import.meta.main,
+  argv1: process.argv[1],
+  modulePath: fileURLToPath(import.meta.url)
+});
+if (decision === "run") {
   process.exitCode = main(process.argv.slice(2));
+} else if (decision === "unsupported") {
+  console.error(`build failed: ${unsupportedNodeMessage(process.version)}`);
+  process.exitCode = 1;
 }
