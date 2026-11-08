@@ -7,7 +7,7 @@
 // The release build copies an explicit allowlist of runtime files byte for
 // byte. The dev build is the same except that the manifest's host_permissions
 // and name, and the API_URL line in lib/request.js, point at a local backend.
-import { copyFileSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { unzipSync, zipSync } from "fflate";
@@ -163,6 +163,14 @@ export function buildDev({ root = ROOT, distDir = join(root, "dist"), apiUrl }) 
   return outDir;
 }
 
+// Names an unknown argument without echoing any value it carries, which may
+// contain credentials: only the --flag part of --flag=value, and nothing of
+// a non-flag argument.
+function unknownArgumentMessage(arg) {
+  const flag = /^--?[A-Za-z0-9][A-Za-z0-9-]*/.exec(arg)?.[0];
+  return flag ? `Unknown argument: ${flag}` : "Unexpected argument (value not shown)";
+}
+
 export function parseArgs(argv) {
   const options = { zip: false, dev: false, apiUrl: undefined };
   for (let i = 0; i < argv.length; i++) {
@@ -171,7 +179,7 @@ export function parseArgs(argv) {
     else if (arg === "--dev") options.dev = true;
     else if (arg === "--api-url") options.apiUrl = argv[++i] ?? "";
     else if (arg.startsWith("--api-url=")) options.apiUrl = arg.slice("--api-url=".length);
-    else throw new Error(`Unknown argument: ${arg}`);
+    else throw new Error(unknownArgumentMessage(arg));
   }
   if (options.zip && (options.dev || options.apiUrl !== undefined)) {
     throw new Error("--zip builds the release package and cannot be combined with --dev or --api-url");
@@ -201,17 +209,9 @@ export function main(argv) {
   }
 }
 
-// Node resolves symlinks in the entry path before setting import.meta.url, so
-// compare real paths.
-function isEntryPoint() {
-  if (!process.argv[1]) return false;
-  try {
-    return realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url));
-  } catch {
-    return false;
-  }
-}
-
-if (isEntryPoint()) {
+// import.meta.main is true only for the entry module, however it was named
+// on the command line (symlinked path, no .js extension). Available in every
+// Node version allowed by package.json engines.
+if (import.meta.main) {
   process.exitCode = main(process.argv.slice(2));
 }
