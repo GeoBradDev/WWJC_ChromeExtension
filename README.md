@@ -46,7 +46,8 @@ It holds people accountable using the same belief system they publicly claim —
 
 ## Development
 
-Requires Node.js 22.12 or newer.
+Requires Node.js 22.22.2 or a later 22.x, 24.15.0 or a later 24.x, or 26 or newer
+(the floor set by the dev dependencies).
 
 ```sh
 npm ci          # install dev dependencies
@@ -102,8 +103,10 @@ A successful response is JSON of the form:
 {"raw": {"reference": "...", "verse": "...", "explanation": "..."}}
 ```
 
-All three fields must be non-empty strings. On failure the service may answer with
-`{"error": "<message>"}`, which the popup shows (trimmed and shortened).
+All three fields must be non-empty strings. To report a failure, the service can
+answer with a 2xx status and `{"error": "<message>"}`; the popup shows that message,
+trimmed and shortened. For any non-2xx status the body is not read and the popup shows
+a generic error with the HTTP status code.
 
 ---
 

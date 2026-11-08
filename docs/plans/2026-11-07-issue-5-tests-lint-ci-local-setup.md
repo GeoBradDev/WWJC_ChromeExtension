@@ -96,7 +96,9 @@ writer on `node:zlib` (`deflateRawSync`, `crc32`), at the cost of owning binary 
 
 - `package.json`, `package-lock.json`: devDependencies eslint 10.13.0, @eslint/js 10.0.1,
   globals 17.13.0, fflate 0.8.3 (exact); scripts `lint`, `build`, `build:dev`, `package`;
-  `engines.node` `>=22.12.0` (vitest 5.1.0's floor).
+  `engines.node` `^22.22.2 || ^24.15.0 || >=26.0.0` (changed after review from `>=22.12.0`, vitest 5.1.0's floor:
+  jsdom 31.0.0 requires `^22.22.2 || ^24.15.0 || >=26.0.0` and eslint 10.13.0 requires `^22.13.0` or `>=24`; the
+  jsdom range satisfies all of them).
 - `eslint.config.js` (new).
 - `scripts/build.js` (new).
 - `test/build.test.js` (new).
